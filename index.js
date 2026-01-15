@@ -47,7 +47,7 @@ app.use(express.static('public'));
 app.use(methodOverride('_method'));
 app.use(express.urlencoded({extended : true}))
 app.use(session({
-    secret: 'itsmemyselfandi', // You should replace this with a secure, random string in a production app
+    secret: process.env.SESSION_SECRET, // You should replace this with a secure, random string in a production app
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Set secure to true if using HTTPS
