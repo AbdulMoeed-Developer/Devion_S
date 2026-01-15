@@ -11,6 +11,8 @@ const ejsMate = require('ejs-mate')
 const catchAsync = require('./utils/catchAsync')
 const ExpressError = require('./utils/ExpressError')
 const session = require('express-session')
+const {MongoStore} = require("connect-mongo");
+
 const flash = require('connect-flash')
 app.use(express.static('public'));
 const methodOverride = require('method-override')
@@ -46,12 +48,6 @@ app.use(express.static('public'));
 
 app.use(methodOverride('_method'));
 app.use(express.urlencoded({extended : true}))
-app.use(session({
-    secret: process.env.SESSION_SECRET, // You should replace this with a secure, random string in a production app
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // Set secure to true if using HTTPS
-}));
 app.use(flash())
 
 app.use(passport.initialize());
@@ -62,15 +58,33 @@ passport.serializeUser(User.serializeUser())
 passport.deserializeUser(User.deserializeUser())
 
 
-app.use((req , res , next)=>{
-    res.locals.currentUser = req.user;
-   res.locals.success = req.flash('success');
-   res.locals.error = req.flash('error')
-   next();
-})
+const store = MongoStore.create({
+  mongoUrl: process.env.MONGO_URL,
+  touchAfter: 24 * 3600
+});
+
+store.on("error", function (e) {
+  console.log("SESSION STORE ERROR", e);
+});
+
+app.use(session({
+  store,
+  name: "session",
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 * 7
+  }
+}));
 
 
 
+
+app.get("/", (req, res) => {
+  res.redirect("/main"); // OR res.render("home")
+});
 
 // Use the routes
 app.use('/main', mainRoutes); // Main routes for the homepage or general routes
