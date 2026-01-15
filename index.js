@@ -48,15 +48,6 @@ app.use(express.static('public'));
 
 app.use(methodOverride('_method'));
 app.use(express.urlencoded({extended : true}))
-app.use(flash())
-
-app.use(passport.initialize());
-app.use(passport.session());
-passport.use(new LocalStrategy(User.authenticate()));
-
-passport.serializeUser(User.serializeUser())
-passport.deserializeUser(User.deserializeUser())
-
 
 const store = MongoStore.create({
   mongoUrl: process.env.MONGO_URL,
@@ -79,6 +70,14 @@ app.use(session({
   }
 }));
 
+app.use(flash())
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser())
+passport.deserializeUser(User.deserializeUser())
 
 
 
